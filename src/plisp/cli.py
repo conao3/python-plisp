@@ -18,17 +18,21 @@ class Reader:
 
     @property
     def char(self) -> str:
+        if self.pos >= self.lensrc:
+            raise types.PlispError('Unexpected EOF')
+
         return self.src[self.pos]
 
     @property
     def peek_char(self) -> str:
         return self.src[self.pos + 1]
 
+    def skip_whitespace(self):
+        while self.pos < self.lensrc and self.src[self.pos] in string.whitespace:
+            self.pos += 1
+
     def read(self) -> types.Expression:
-        # breakpoint()
-        if self.char in string.whitespace:
-            while self.pos < self.lensrc and self.char in string.whitespace:
-                self.pos += 1
+        self.skip_whitespace()
 
         if self.char == ';':
             while self.src[self.pos] != '\n':
@@ -36,17 +40,45 @@ class Reader:
             return self.read()  # TODO: recursion limit?
 
         if self.char == '(':
-            return  # TODO: read list
+            self.pos += 1
+
+            self.skip_whitespace()
+
+            if self.char == ')':
+                self.pos += 1
+                return types.NIL
+
+            # list notation
+            def read_list_exp() -> types.Expression:
+                self.skip_whitespace()
+                if self.char == ')':
+                    self.pos += 1
+                    return types.NIL
+
+                if self.char == '.':  # cons notation
+                    self.pos += 1
+                    ret = self.read()
+
+                    self.skip_whitespace()
+                    if self.char == ')':
+                        self.pos += 1
+                        return ret
+
+                    raise types.PlispError('Expected `)\' after cons cdr')
+
+                return types.Cell(car=self.read(), cdr=read_list_exp())
+
+            return types.Cell(car=self.read(), cdr=read_list_exp())  # TODO: recursion limit?
 
         if self.char == ')':
-            raise types.SyntaxError('Unbalanced parentheses')
+            raise types.SyntaxError('unexpected `)\'')
 
         if (m := re.match(r'[0-9]+', self.src[self.pos:])):
-            self.pos = m.end()
+            self.pos += m.end()
             return types.Int(value=int(m.group()))
 
         pos = self.pos
-        while self.pos < self.lensrc and self.src[self.pos] not in string.whitespace:
+        while self.pos < self.lensrc and self.src[self.pos] not in (string.whitespace + '()'):
             self.pos += 1
 
         return types.Symbol(name=self.src[pos:self.pos])

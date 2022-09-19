@@ -27,6 +27,10 @@ class Symbol(Atom):
         return f'Symbol(name={repr(self.name)}, value={repr(self.value)}, function={repr(self.function)})'
 
 
+NIL = Symbol('nil')
+T = Symbol('t')
+
+
 @dataclasses.dataclass
 class Int(Atom):
     value: int
