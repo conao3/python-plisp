@@ -1,5 +1,6 @@
 import argparse
 import builtins
+import logging
 import re
 import readline
 import string
@@ -7,6 +8,9 @@ import sys
 from typing import Optional
 
 from . import types
+
+
+logger = logging.getLogger(__name__)
 
 
 class Reader:
@@ -136,6 +140,9 @@ def repl():
 
         except (KeyboardInterrupt, EOFError):
             break
+
+        except Exception as e:
+            logger.exception('Plisp internal error')
 
 
 def main():
