@@ -58,3 +58,7 @@ class PlispError(Exception):
 
 class SyntaxError(PlispError):
     pass
+
+
+class EvalError(PlispError):
+    pass

@@ -60,7 +60,22 @@ def read(x: Optional[str]) -> Optional[types.Expression]:
 
 
 def eval(x: Optional[types.Expression]) -> Optional[types.Expression]:
-    return x
+    if not x:
+        return
+
+    match x:
+        case types.Int():
+            return x
+
+        case types.Symbol():
+            return x  # TODO: lookup symbol
+
+        case types.Cell():
+            return x  # TODO: eval list
+
+        case _:
+            raise types.EvalError(f'Unknown expression type: {x}')
+
 
 
 def print(x: Optional[types.Expression]) -> Optional[str]:
