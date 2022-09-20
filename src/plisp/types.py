@@ -18,13 +18,12 @@ class Atom(Expression):
 class Symbol(Atom):
     name: str
     value: Optional[Expression] = None
-    function: Optional[Expression] = None
 
     def __str__(self) -> str:
         return self.name
 
     def __repr__(self) -> str:
-        return f'Symbol(name={repr(self.name)}, value={repr(self.value)}, function={repr(self.function)})'
+        return f'Symbol(name={repr(self.name)}, value={repr(self.value)})'
 
 
 NIL = Symbol('nil')
@@ -44,8 +43,8 @@ class Int(Atom):
 
 @dataclasses.dataclass
 class Cell(Expression):
-    car: Optional[Expression] = None
-    cdr: Optional[Expression] = None
+    car: Expression
+    cdr: Expression
 
     def __str__(self) -> str:
         return f'({self.car} . {self.cdr})'
@@ -57,7 +56,7 @@ class Cell(Expression):
 
 class PlispError(Exception):
     def __str__(self) -> str:
-        return f'({util.camel_to_kebab(self.__class__.__name__)} "{self.args[0]}")'
+        return f'({util.camel_to_kebab(self.__class__.__name__)} {self.args})'
 
 
 class SyntaxError(PlispError):
@@ -65,4 +64,12 @@ class SyntaxError(PlispError):
 
 
 class EvalError(PlispError):
+    pass
+
+
+class WrongTypeArgument(PlispError):
+    pass
+
+
+class WrongNumberOfArguments(PlispError):
     pass

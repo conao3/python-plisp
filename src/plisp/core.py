@@ -3,6 +3,7 @@ import string
 from typing import Optional, TypeVar
 
 from . import types
+from . import builtin
 
 
 class Environment:
@@ -97,24 +98,31 @@ def read(x: Optional[str]) -> Optional[types.Expression]:
     return Reader(x).read()
 
 
-T = TypeVar('T', type(None), types.Expression)
+T = TypeVar('T', None, types.Expression)
 def eval(x: T) -> T:
-    if not x:
-        return None
+    if x is None:
+        return x
 
-    match x:
-        case types.Int():
-            return x
+    if isinstance(x, types.Symbol):
+        return x  # TODO: lookup symbol
 
-        case types.Symbol():
-            return x  # TODO: lookup symbol
+    if not isinstance(x, types.Cell):
+        return x
 
-        case types.Cell():
-            return x  # TODO: eval list
+    if not isinstance(x.car, types.Symbol):
+        raise types.PlispError('Expected symbol as function name')
 
-        case _:
-            raise types.EvalError(f'Unknown expression type: {x}')
+    if x.car.name == 'atom': return builtin.atom(x.cdr)
+    if x.car.name == 'eq': return builtin.eq(x.cdr)
+    if x.car.name == 'car': return builtin.car(x.cdr)
+    if x.car.name == 'cdr': return builtin.cdr(x.cdr)
+    if x.car.name == 'cons': return builtin.cons(x.cdr)
+    if x.car.name == 'cond': return builtin.cond(x.cdr)
+    if x.car.name == 'quote': return builtin.quote(x.cdr)
+    if x.car.name == 'lambda': return builtin.lambda_(x.cdr)
+    if x.car.name == 'define': return builtin.define(x.cdr)
 
+    raise types.PlispError(f'Unknown function {x.car.name}')  # TODO: lookup symbol
 
 
 def print(x: Optional[types.Expression]) -> Optional[str]:
