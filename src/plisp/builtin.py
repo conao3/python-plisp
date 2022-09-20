@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 from . import types
 from . import lib
 from . import core
 
 
-def atom(args: types.Expression) -> types.Symbol:
+def atom(args: types.Expression, _env: core.Env) -> types.Symbol:
     (x,) = lib.extract_list(args)
 
     if isinstance(x, types.Atom):
@@ -12,7 +14,7 @@ def atom(args: types.Expression) -> types.Symbol:
     return types.NIL
 
 
-def eq(args: types.Expression) -> types.Symbol:
+def eq(args: types.Expression, _env: core.Env) -> types.Symbol:
     (x, y) = lib.extract_list(args, 2)
 
     if x == y:
@@ -21,7 +23,7 @@ def eq(args: types.Expression) -> types.Symbol:
     return types.NIL
 
 
-def car(args: types.Expression) -> types.Expression:
+def car(args: types.Expression, _env: core.Env) -> types.Expression:
     (x,) = lib.extract_list(args)
 
     if not isinstance(x, types.Cell):
@@ -30,7 +32,7 @@ def car(args: types.Expression) -> types.Expression:
     return x.car
 
 
-def cdr(args: types.Expression) -> types.Expression:
+def cdr(args: types.Expression, _env: core.Env) -> types.Expression:
     (x,) = lib.extract_list(args)
 
     if not isinstance(x, types.Cell):
@@ -39,41 +41,43 @@ def cdr(args: types.Expression) -> types.Expression:
     return x.cdr
 
 
-def cons(args: types.Expression) -> types.Cell:
+def cons(args: types.Expression, _env: core.Env) -> types.Cell:
     (x, y) = lib.extract_list(args, 2)
 
     return types.Cell(car=x, cdr=y)
 
 
-def cond(args: types.Expression) -> types.Expression:
+def cond(args: types.Expression, env: core.Env) -> types.Expression:
     for arg in lib.cell_iter(args):
         if not isinstance(arg, types.Cell):
             raise types.PlispError('Expected cons cell')
 
-        if (ret := core.eval(arg.car)) != types.NIL:
+        if (ret := core.eval(arg.car, env)) != types.NIL:
             for x in lib.cell_iter(arg.cdr):
-                ret = core.eval(x)
+                ret = core.eval(x, env)
 
             return ret
 
     return types.NIL
 
 
-def quote(args: types.Expression) -> types.Expression:
+def quote(args: types.Expression, _env: core.Env) -> types.Expression:
     (x,) = lib.extract_list(args)
 
     return x
 
 
-def lambda_(args: types.Expression) -> types.Cell:
+def lambda_(args: types.Expression, _env: core.Env) -> types.Cell:
     ...  # TODO: implement
 
 
-def define(args: types.Expression) -> types.Expression:
+def define(args: types.Expression, env: core.Env) -> types.Expression:
     (x, y) = lib.extract_list(args, 2)
 
-    if not isinstance((sym := core.eval(x)), types.Symbol):
+    if not isinstance(x, types.Symbol):
         raise types.PlispError('Expected symbol')
 
-    sym.value = (val := core.eval(y))
+    x.value = (val := core.eval(y, env))
+    env.symbols[x.name] = x
+
     return val

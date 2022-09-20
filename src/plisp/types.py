@@ -73,3 +73,7 @@ class WrongTypeArgument(PlispError):
 
 class WrongNumberOfArguments(PlispError):
     pass
+
+
+class VoidValiable(PlispError):
+    pass

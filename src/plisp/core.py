@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 import string
 from typing import Optional, TypeVar
@@ -6,14 +8,24 @@ from . import types
 from . import builtin
 
 
-class Environment:
+class Env:
     def __init__(
         self,
-        parent: Optional['Environment'] = None,
-        symbols: dict[str, types.Expression] = {}
+        parent: Optional['Env'] = None,
+        symbols: dict[str, types.Symbol] = {}
     ):
         self.parent = parent
         self.symbols = symbols
+
+    def find(self, name: str) -> Optional[Env]:
+        if name in self.symbols:
+            return self
+
+        if self.parent:
+            return self.parent.find(name)
+
+
+global_env = Env()
 
 
 class Reader:
@@ -99,12 +111,18 @@ def read(x: Optional[str]) -> Optional[types.Expression]:
 
 
 T = TypeVar('T', None, types.Expression)
-def eval(x: T) -> T:
+def eval(x: T, env: Env = global_env) -> T:
     if x is None:
         return x
 
     if isinstance(x, types.Symbol):
-        return x  # TODO: lookup symbol
+        if not (e := env.find(x.name)):
+            raise types.PlispError(f'Undefined symbol {x.name}')
+
+        if not (ret := e.symbols[x.name].value):
+            raise types.PlispError(f'Undefined symbol {x.name}')
+
+        return ret
 
     if not isinstance(x, types.Cell):
         return x
@@ -112,15 +130,15 @@ def eval(x: T) -> T:
     if not isinstance(x.car, types.Symbol):
         raise types.PlispError('Expected symbol as function name')
 
-    if x.car.name == 'atom': return builtin.atom(x.cdr)
-    if x.car.name == 'eq': return builtin.eq(x.cdr)
-    if x.car.name == 'car': return builtin.car(x.cdr)
-    if x.car.name == 'cdr': return builtin.cdr(x.cdr)
-    if x.car.name == 'cons': return builtin.cons(x.cdr)
-    if x.car.name == 'cond': return builtin.cond(x.cdr)
-    if x.car.name == 'quote': return builtin.quote(x.cdr)
-    if x.car.name == 'lambda': return builtin.lambda_(x.cdr)
-    if x.car.name == 'define': return builtin.define(x.cdr)
+    if x.car.name == 'atom': return builtin.atom(x.cdr, env)
+    if x.car.name == 'eq': return builtin.eq(x.cdr, env)
+    if x.car.name == 'car': return builtin.car(x.cdr, env)
+    if x.car.name == 'cdr': return builtin.cdr(x.cdr, env)
+    if x.car.name == 'cons': return builtin.cons(x.cdr, env)
+    if x.car.name == 'cond': return builtin.cond(x.cdr, env)
+    if x.car.name == 'quote': return builtin.quote(x.cdr, env)
+    if x.car.name == 'lambda': return builtin.lambda_(x.cdr, env)
+    if x.car.name == 'define': return builtin.define(x.cdr, env)
 
     raise types.PlispError(f'Unknown function {x.car.name}')  # TODO: lookup symbol
 

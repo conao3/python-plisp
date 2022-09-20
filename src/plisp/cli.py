@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import logging
 import readline
@@ -22,6 +24,7 @@ def repl():
 
         except types.PlispError as e:
             print(f'Error: {e}')
+            logger.exception('')
 
         except (KeyboardInterrupt, EOFError):
             break
