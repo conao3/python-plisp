@@ -51,7 +51,7 @@ class Reader:
 
             self.skip_whitespace()
 
-            if self.char == ')':
+            if self.char == ')':  # type: ignore
                 self.pos += 1
                 return types.NIL
 
@@ -67,7 +67,7 @@ class Reader:
                     ret = self.read()
 
                     self.skip_whitespace()
-                    if self.char == ')':
+                    if self.char == ')':  # type: ignore
                         self.pos += 1
                         return ret
 
