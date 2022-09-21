@@ -62,10 +62,8 @@ class Reader:
 
         if self.char == "'":
             self.pos += 1
-            return types.Cell(
-                car=types.Symbol('quote'),
-                cdr=types.Cell(car=self.read(), cdr=types.NIL)
-            )
+            body = types.Cell(car=self.read(), cdr=types.NIL)
+            return types.Cell(car=types.Symbol('quote'), cdr=body)
 
         if self.char == ':':
             pos = self.pos
