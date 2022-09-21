@@ -150,10 +150,10 @@ def eval(x: Optional[types.Expression], env: Env = global_env):
         return
 
     if isinstance(x, types.Symbol):
-        if not (e := env.find(x.name)):
-            raise types.PlispError(f'Undefined symbol {x.name}')
-
-        if not (ret := e.symbols[x.name].value):
+        if (
+            (not (e := env.find(x.name))) or
+            (not (ret := e.symbols[x.name].value))
+        ):
             raise types.PlispError(f'Undefined symbol {x.name}')
 
         return ret
