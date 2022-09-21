@@ -12,7 +12,7 @@ from . import core
 logger = logging.getLogger(__name__)
 
 
-def repl():
+def repl(debug=False):
     while True:
         try:
             line = input("plisp> ")
@@ -24,7 +24,8 @@ def repl():
 
         except types.PlispError as e:
             print(f'Error: {e}')
-            logger.exception('')
+            if debug:
+                logger.exception('')
 
         except (KeyboardInterrupt, EOFError):
             break
@@ -36,11 +37,12 @@ def repl():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--input")
+    parser.add_argument("--debug", action="store_true")
     args = parser.parse_args()
 
 
     if not args.input:
-        repl()
+        repl(debug=args.debug)
         exit()
 
     infile = sys.stdin if args.input == "-" else open(args.input)
