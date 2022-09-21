@@ -9,7 +9,9 @@ from . import core
 def atom(args: types.Expression, _env: core.Env) -> types.Symbol:
     (x,) = lib.extract_list(args)
 
-    if isinstance(x, types.Atom):
+    val = core.eval(x, _env)
+
+    if isinstance(val, types.Atom):
         return types.T
 
     return types.NIL
@@ -18,7 +20,10 @@ def atom(args: types.Expression, _env: core.Env) -> types.Symbol:
 def eq(args: types.Expression, _env: core.Env) -> types.Symbol:
     (x, y) = lib.extract_list(args, 2)
 
-    if x == y:
+    x_val = core.eval(x, _env)
+    y_val = core.eval(y, _env)
+
+    if x_val == y_val:
         return types.T
 
     return types.NIL
@@ -27,25 +32,32 @@ def eq(args: types.Expression, _env: core.Env) -> types.Symbol:
 def car(args: types.Expression, _env: core.Env) -> types.Expression:
     (x,) = lib.extract_list(args)
 
-    if not isinstance(x, types.Cell):
+    val = core.eval(x, _env)
+
+    if not isinstance(val, types.Cell):
         raise types.PlispError('Expected cons cell')
 
-    return x.car
+    return val.car
 
 
 def cdr(args: types.Expression, _env: core.Env) -> types.Expression:
     (x,) = lib.extract_list(args)
 
-    if not isinstance(x, types.Cell):
+    val = core.eval(x, _env)
+
+    if not isinstance(val, types.Cell):
         raise types.PlispError('Expected cons cell')
 
-    return x.cdr
+    return val.cdr
 
 
 def cons(args: types.Expression, _env: core.Env) -> types.Cell:
     (x, y) = lib.extract_list(args, 2)
 
-    return types.Cell(car=x, cdr=y)
+    x_val = core.eval(x, _env)
+    y_val = core.eval(y, _env)
+
+    return types.Cell(car=x_val, cdr=y_val)
 
 
 def cond(args: types.Expression, env: core.Env) -> types.Expression:
@@ -80,7 +92,9 @@ def define(args: types.Expression, env: core.Env) -> types.Expression:
     if not isinstance(x, types.Symbol):
         raise types.PlispError('Expected symbol')
 
-    x.value = (val := core.eval(y, env))
+    val = core.eval(y, env)
+
+    x.value = val
     env.symbols[x.name] = x
 
     return val
@@ -89,7 +103,8 @@ def define(args: types.Expression, env: core.Env) -> types.Expression:
 def print(args: types.Expression, _env: core.Env) -> types.Expression:
     (x,) = lib.extract_list(args)
 
-    ret = core.eval(x, _env)
-    builtins.print(str(ret))
+    val = core.eval(x, _env)
 
-    return ret
+    builtins.print(str(val))
+
+    return val
