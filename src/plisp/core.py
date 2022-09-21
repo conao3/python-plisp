@@ -112,6 +112,33 @@ def read(x: Optional[str]) -> Optional[types.Expression]:
     return Reader(x).read()
 
 
+def lambda_apply(x: types.Cell, env: Env) -> types.Expression:
+    proc = eval(x.car, env)
+    args = [eval(elm, env) for elm in lib.cell_iter(x.cdr)]
+
+    if (
+        (proc is None) or
+        (not lib.listp(proc)) or
+        (not isinstance(proc.car, types.Symbol)) or
+        (proc.car.name != 'lambda')
+    ):
+        raise types.PlispError(f'Expected lambda, got {proc}')
+
+    (params, body) = lib.extract_list(proc.cdr, 2)
+
+    params_lst = list(lib.cell_iter(params))
+    if not all(isinstance(elm, types.Symbol) for elm in params_lst):
+        raise types.PlispError(f'Expected list of symbols, got {params}')
+
+    params_syms = typing.cast(list[types.Symbol], params_lst)
+    fn_symbols = {
+        param.name: types.Symbol(name=param.name, value=value)
+        for param, value in zip(params_syms, args)
+    }
+
+    return eval(body, Env(env.symbols | fn_symbols, env))
+
+
 @typing.overload
 def eval(x: None, env: Env) -> None: ...
 
@@ -145,31 +172,7 @@ def eval(x: Optional[types.Expression], env: Env = global_env):
         if x.car.name == 'lambda': return builtin.lambda_(x.cdr, env)
         if x.car.name == 'define': return builtin.define(x.cdr, env)
 
-    # eval procedure
-    proc = eval(x.car, env)
-    args = [eval(elm, env) for elm in lib.cell_iter(x.cdr)]
-
-    if (
-        (proc is None) or
-        (not lib.listp(proc)) or
-        (not isinstance(proc.car, types.Symbol)) or
-        (proc.car.name != 'lambda')
-    ):
-        raise types.PlispError(f'Expected lambda, got {proc}')
-
-    (params, body) = lib.extract_list(proc.cdr, 2)
-
-    params_lst = list(lib.cell_iter(params))
-    if not all(isinstance(elm, types.Symbol) for elm in params_lst):
-        raise types.PlispError(f'Expected list of symbols, got {params}')
-
-    params_syms = typing.cast(list[types.Symbol], params_lst)
-    fn_symbols = {
-        param.name: types.Symbol(name=param.name, value=value)
-        for param, value in zip(params_syms, args)
-    }
-
-    return eval(body, Env(env.symbols | fn_symbols, env))
+    return lambda_apply(x, env)
 
 
 def print(x: Optional[types.Expression]) -> Optional[str]:
