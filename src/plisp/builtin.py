@@ -1,4 +1,5 @@
 from __future__ import annotations
+import builtins
 
 from . import types
 from . import lib
@@ -83,3 +84,12 @@ def define(args: types.Expression, env: core.Env) -> types.Expression:
     env.symbols[x.name] = x
 
     return val
+
+
+def print(args: types.Expression, _env: core.Env) -> types.Expression:
+    (x,) = lib.extract_list(args)
+
+    ret = core.eval(x, _env)
+    builtins.print(str(ret))
+
+    return ret

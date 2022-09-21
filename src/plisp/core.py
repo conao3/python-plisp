@@ -172,6 +172,9 @@ def eval(x: Optional[types.Expression], env: Env = global_env):
         if x.car.name == 'lambda': return builtin.lambda_(x.cdr, env)
         if x.car.name == 'define': return builtin.define(x.cdr, env)
 
+        # out of scope of Pure Lisp
+        if x.car.name == 'print': return builtin.print(x.cdr, env)
+
     return lambda_apply(x, env)
 
 
