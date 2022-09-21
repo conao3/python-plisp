@@ -108,3 +108,19 @@ def print(args: types.Expression, _env: core.Env) -> types.Expression:
     builtins.print(str(val))
 
     return val
+
+
+def makunbound(args: types.Expression, env: core.Env) -> types.Expression:
+    (x,) = lib.extract_list(args)
+
+    x_val = core.eval(x, env)
+
+    if not isinstance(x_val, types.Symbol):
+        raise types.PlispError('Expected symbol')
+
+    if not (e := env.find(x_val.name)):
+        return x_val
+
+    e.symbols[x_val.name].value = None
+
+    return x_val
