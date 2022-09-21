@@ -47,7 +47,16 @@ class Cell(Expression):
     cdr: Expression
 
     def __str__(self) -> str:
-        return f'({self.car} . {self.cdr})'
+        lst = []
+        cell = self
+        while isinstance(cell, Cell):
+            lst.append(str(cell.car))
+            cell = cell.cdr
+
+        if cell == NIL:
+            return '(' + ' '.join(lst) + ')'
+
+        return '(' + ' '.join(lst) + ' . ' + str(cell) + ')'
 
     def __repr__(self) -> str:
         return f'Cell(car={repr(self.car)}, cdr={repr(self.cdr)})'
