@@ -67,6 +67,13 @@ class Reader:
                 cdr=types.Cell(car=self.read(), cdr=types.NIL)
             )
 
+        if self.char == ':':
+            pos = self.pos
+            while self.pos < self.lensrc and self.src[self.pos] not in (string.whitespace + '()'):
+                self.pos += 1
+
+            return types.Symbol(name=self.src[pos:self.pos])
+
         if self.char == '(':
             self.pos += 1
 
@@ -159,6 +166,7 @@ def eval(x: Optional[types.Expression], env: Env = global_env):
     if isinstance(x, types.Symbol):
         if x.name == 'nil': return types.NIL
         if x.name == 't': return types.T
+        if x.name.startswith(':'): return x
 
         if (
             (not (e := env.find(x.name))) or
