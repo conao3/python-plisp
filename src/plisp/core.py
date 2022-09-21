@@ -101,7 +101,7 @@ class Reader:
         if self.char == ')':
             raise types.SyntaxError('unexpected `)\'')
 
-        if (m := re.match(r'[0-9]+', self.src[self.pos:])):
+        if (m := re.match(r'[+-]?[0-9]+', self.src[self.pos:])):
             self.pos += m.end()
             return types.Int(value=int(m.group()))
 
