@@ -2,17 +2,19 @@ from __future__ import annotations
 
 import re
 import string
-from typing import Optional, TypeVar
+import typing
+from typing import Optional
 
 from . import types
 from . import builtin
+from . import lib
 
 
 class Env:
     def __init__(
         self,
+        symbols: dict[str, types.Symbol] = {},
         parent: Optional['Env'] = None,
-        symbols: dict[str, types.Symbol] = {}
     ):
         self.parent = parent
         self.symbols = symbols
@@ -110,10 +112,15 @@ def read(x: Optional[str]) -> Optional[types.Expression]:
     return Reader(x).read()
 
 
-T = TypeVar('T', None, types.Expression)
-def eval(x: T, env: Env = global_env) -> T:
-    if x is None:
-        return x
+@typing.overload
+def eval(x: None, env: Env) -> None: ...
+
+@typing.overload
+def eval(x: types.Expression, env: Env) -> types.Expression: ...
+
+def eval(x: Optional[types.Expression], env: Env = global_env):
+    if not x:
+        return
 
     if isinstance(x, types.Symbol):
         if not (e := env.find(x.name)):
@@ -127,20 +134,42 @@ def eval(x: T, env: Env = global_env) -> T:
     if not isinstance(x, types.Cell):
         return x
 
-    if not isinstance(x.car, types.Symbol):
-        raise types.PlispError('Expected symbol as function name')
+    if isinstance(x.car, types.Symbol):
+        if x.car.name == 'atom': return builtin.atom(x.cdr, env)
+        if x.car.name == 'eq': return builtin.eq(x.cdr, env)
+        if x.car.name == 'car': return builtin.car(x.cdr, env)
+        if x.car.name == 'cdr': return builtin.cdr(x.cdr, env)
+        if x.car.name == 'cons': return builtin.cons(x.cdr, env)
+        if x.car.name == 'cond': return builtin.cond(x.cdr, env)
+        if x.car.name == 'quote': return builtin.quote(x.cdr, env)
+        if x.car.name == 'lambda': return builtin.lambda_(x.cdr, env)
+        if x.car.name == 'define': return builtin.define(x.cdr, env)
 
-    if x.car.name == 'atom': return builtin.atom(x.cdr, env)
-    if x.car.name == 'eq': return builtin.eq(x.cdr, env)
-    if x.car.name == 'car': return builtin.car(x.cdr, env)
-    if x.car.name == 'cdr': return builtin.cdr(x.cdr, env)
-    if x.car.name == 'cons': return builtin.cons(x.cdr, env)
-    if x.car.name == 'cond': return builtin.cond(x.cdr, env)
-    if x.car.name == 'quote': return builtin.quote(x.cdr, env)
-    if x.car.name == 'lambda': return builtin.lambda_(x.cdr, env)
-    if x.car.name == 'define': return builtin.define(x.cdr, env)
+    # eval procedure
+    proc = eval(x.car, env)
+    args = [eval(elm, env) for elm in lib.cell_iter(x.cdr)]
 
-    raise types.PlispError(f'Unknown function {x.car.name}')  # TODO: lookup symbol
+    if (
+        (proc is None) or
+        (not lib.listp(proc)) or
+        (not isinstance(proc.car, types.Symbol)) or
+        (proc.car.name != 'lambda')
+    ):
+        raise types.PlispError(f'Expected lambda, got {proc}')
+
+    (params, body) = lib.extract_list(proc.cdr, 2)
+
+    params_lst = list(lib.cell_iter(params))
+    if not all(isinstance(elm, types.Symbol) for elm in params_lst):
+        raise types.PlispError(f'Expected list of symbols, got {params}')
+
+    params_syms = typing.cast(list[types.Symbol], params_lst)
+    fn_symbols = {
+        param.name: types.Symbol(name=param.name, value=value)
+        for param, value in zip(params_syms, args)
+    }
+
+    return eval(body, Env(env.symbols | fn_symbols, env))
 
 
 def print(x: Optional[types.Expression]) -> Optional[str]:
