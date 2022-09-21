@@ -48,7 +48,7 @@ class Cell(Expression):
     cdr: Expression
 
     def __str__(self) -> str:
-        lst = []
+        lst: list[str] = []
         cell = self
         while isinstance(cell, Cell):
             lst.append(str(cell.car))
