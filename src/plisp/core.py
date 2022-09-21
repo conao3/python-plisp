@@ -60,6 +60,13 @@ class Reader:
                 self.pos += 1
             return self.read()  # TODO: recursion limit?
 
+        if self.char == "'":
+            self.pos += 1
+            return types.Cell(
+                car=types.Symbol('quote'),
+                cdr=types.Cell(car=self.read(), cdr=types.NIL)
+            )
+
         if self.char == '(':
             self.pos += 1
 
