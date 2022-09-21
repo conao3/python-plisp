@@ -68,7 +68,9 @@ def quote(args: types.Expression, _env: core.Env) -> types.Expression:
 
 
 def lambda_(args: types.Expression, _env: core.Env) -> types.Cell:
-    ...  # TODO: implement
+    (_params, _body) = lib.extract_list(args, 2)  # just check
+
+    return types.Cell(car=types.Symbol('lambda'), cdr=args)
 
 
 def define(args: types.Expression, env: core.Env) -> types.Expression:
