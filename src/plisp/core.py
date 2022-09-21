@@ -151,4 +151,4 @@ def print(x: Optional[types.Expression]) -> Optional[str]:
 
 
 def rep(x: str) -> Optional[str]:
-    return print(eval(read(x)))
+    return print(eval(read(x)))  # type: ignore
