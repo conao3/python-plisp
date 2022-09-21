@@ -4,6 +4,9 @@
 (define fn1 (lambda (x) x))
 ;=>(lambda (x) x)
 
+(fn1 10)
+;=>10
+
 ;; Church numerals
 
 (define c0 (lambda (f x) x))
