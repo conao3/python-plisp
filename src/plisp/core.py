@@ -157,6 +157,9 @@ def eval(x: Optional[types.Expression], env: Env = global_env):
         return
 
     if isinstance(x, types.Symbol):
+        if x.name == 'nil': return types.NIL
+        if x.name == 't': return types.T
+
         if (
             (not (e := env.find(x.name))) or
             (not (ret := e.symbols[x.name].value))
