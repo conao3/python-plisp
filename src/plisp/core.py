@@ -191,6 +191,7 @@ def eval(x: Optional[types.Expression], env: Env = global_env):
         # out of scope of Pure Lisp
         if x.car.name == 'print': return builtin.print(x.cdr, env)
         if x.car.name == 'makunbound': return builtin.makunbound(x.cdr, env)
+        if x.car.name == '1+': return builtin.one_plus(x.cdr, env)
 
     return lambda_apply(x, env)
 

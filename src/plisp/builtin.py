@@ -124,3 +124,14 @@ def makunbound(args: types.Expression, env: core.Env) -> types.Expression:
     e.symbols[x_val.name].value = None
 
     return x_val
+
+
+def one_plus(args: types.Expression, _env: core.Env) -> types.Int:
+    (x,) = lib.extract_list(args)
+
+    x_val = core.eval(x, _env)
+
+    if not isinstance(x_val, types.Int):
+        raise types.PlispError('Expected integer')
+
+    return types.Int(value=x_val.value + 1)
