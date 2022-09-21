@@ -1,4 +1,5 @@
 from __future__ import annotations
+import json
 
 from typing import Optional
 import dataclasses
@@ -65,7 +66,9 @@ class Cell(Expression):
 
 class PlispError(Exception):
     def __str__(self) -> str:
-        return f'({util.camel_to_kebab(self.__class__.__name__)} {self.args})'
+        name = util.camel_to_kebab(self.__class__.__name__)
+
+        return f'({name} {" ".join([json.dumps(elm, default=str) for elm in self.args])})'
 
 
 class SyntaxError(PlispError):
