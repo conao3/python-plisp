@@ -27,7 +27,29 @@ class Env:
             return self.parent.find(name)
 
 
-global_env = Env()
+builtin_functions = {
+    'atom': types.BuiltinFunction(name='atom', value=builtin.atom),
+    'eq': types.BuiltinFunction(name='eq', value=builtin.eq),
+    'car': types.BuiltinFunction(name='car', value=builtin.car),
+    'cdr': types.BuiltinFunction(name='cdr', value=builtin.cdr),
+    'cons': types.BuiltinFunction(name='cons', value=builtin.cons),
+    'cond': types.BuiltinFunction(name='cond', value=builtin.cond),
+    'quote': types.BuiltinFunction(name='quote', value=builtin.quote),
+    'lambda': types.BuiltinFunction(name='lambda', value=builtin.lambda_),
+    'define': types.BuiltinFunction(name='define', value=builtin.define),
+    'print': types.BuiltinFunction(name='print', value=builtin.print),
+
+    # out of scope of Pure Lisp
+    'makunbound': types.BuiltinFunction(name='makunbound', value=builtin.makunbound),
+    '1+': types.BuiltinFunction(name='1+', value=builtin.one_plus),
+}
+
+
+def create_env() -> Env:
+    return Env(symbols={elm: types.Symbol(name=elm, value=fn) for elm, fn in builtin_functions.items()})
+
+
+global_env = create_env()
 
 
 class Reader:
@@ -124,9 +146,11 @@ def read(x: Optional[str]) -> Optional[types.Expression]:
     return Reader(x).read()
 
 
-def lambda_apply(x: types.Cell, env: Env) -> types.Expression:
-    proc = eval(x.car, env)
-    args = [eval(elm, env) for elm in lib.cell_iter(x.cdr)]
+def lambda_apply(proc: types.Expression, raw_cdr: types.Expression, env: Env) -> types.Expression:
+    if not isinstance(proc, types.Cell):
+        raise types.PlispError(f'Expected function, got {proc}')
+
+    args = [eval(elm, env) for elm in lib.cell_iter(raw_cdr)]
 
     if (
         (proc is None) or
@@ -177,23 +201,15 @@ def eval(x: Optional[types.Expression], env: Env = global_env):
     if not isinstance(x, types.Cell):
         return x
 
-    if isinstance(x.car, types.Symbol):
-        if x.car.name == 'atom': return builtin.atom(x.cdr, env)
-        if x.car.name == 'eq': return builtin.eq(x.cdr, env)
-        if x.car.name == 'car': return builtin.car(x.cdr, env)
-        if x.car.name == 'cdr': return builtin.cdr(x.cdr, env)
-        if x.car.name == 'cons': return builtin.cons(x.cdr, env)
-        if x.car.name == 'cond': return builtin.cond(x.cdr, env)
-        if x.car.name == 'quote': return builtin.quote(x.cdr, env)
-        if x.car.name == 'lambda': return builtin.lambda_(x.cdr, env)
-        if x.car.name == 'define': return builtin.define(x.cdr, env)
+    proc = eval(x.car, env)
 
-        # out of scope of Pure Lisp
-        if x.car.name == 'print': return builtin.print(x.cdr, env)
-        if x.car.name == 'makunbound': return builtin.makunbound(x.cdr, env)
-        if x.car.name == '1+': return builtin.one_plus(x.cdr, env)
+    if isinstance(proc, types.Symbol):
+        proc = eval(proc, env)
 
-    return lambda_apply(x, env)
+    if isinstance(proc, types.BuiltinFunction):
+        return proc.value(x.cdr, env)
+
+    return lambda_apply(proc, x.cdr, env)
 
 
 def print(x: Optional[types.Expression]) -> Optional[str]:

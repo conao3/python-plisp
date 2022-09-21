@@ -23,7 +23,7 @@ def test__001_read():
 def test__002_eval():
     with open('./tests/specs/002_eval.lisp', 'r') as f:
         ret = None
-        env = core.Env()
+        env = core.create_env()
 
         for line in f:
             line = line.strip()

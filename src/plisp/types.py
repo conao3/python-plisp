@@ -1,7 +1,7 @@
 from __future__ import annotations
-import json
 
-from typing import Optional
+import json
+from typing import Optional, Callable
 import dataclasses
 
 from . import util
@@ -62,6 +62,17 @@ class Cell(Expression):
     def __repr__(self) -> str:
         return f'Cell(car={repr(self.car)}, cdr={repr(self.cdr)})'
 
+
+@dataclasses.dataclass
+class BuiltinFunction(Expression):
+    name: str
+    value: Callable[..., Expression]
+
+    def __str__(self) -> str:
+        return f'<builtin function {self.name}>'
+
+    def __repr__(self) -> str:
+        return f'BuiltinFunction(name={repr(self.name)}, fn={repr(self.value)})'
 
 
 class PlispError(Exception):

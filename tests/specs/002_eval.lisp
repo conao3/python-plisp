@@ -6,18 +6,33 @@
 
 ;; Church numerals
 
-(define zero (lambda (_f) (lambda (x) x)))
-;=>(lambda (_f) (lambda (x) x))
-(define one (lambda (f) (lambda (x) (f x))))
-;=>(lambda (f) (lambda (x) (f x)))
-(define two (lambda (f) (lambda (x) (f (f x)))))
-;=>(lambda (f) (lambda (x) (f (f x))))
-(define three (lambda (f) (lambda (x) (f (f (f x))))))
-;=>(lambda (f) (lambda (x) (f (f (f x)))))
-(define four (lambda (f) (lambda (x) (f (f (f (f x)))))))
-;=>(lambda (f) (lambda (x) (f (f (f (f x))))))
-(define five (lambda (f) (lambda (x) (f (f (f (f (f x))))))))
-;=>(lambda (f) (lambda (x) (f (f (f (f (f x)))))))
+(define c0 (lambda (f x) x))
+;=>(lambda (f x) x)
+(define c1 (lambda (f x) (f x)))
+;=>(lambda (f x) (f x))
+(define c2 (lambda (f x) (f (f x))))
+;=>(lambda (f x) (f (f x)))
+(define c3 (lambda (f x) (f (f (f x)))))
+;=>(lambda (f x) (f (f (f x))))
+(define c4 (lambda (f x) (f (f (f (f x))))))
+;=>(lambda (f x) (f (f (f (f x)))))
+(define c5 (lambda (f x) (f (f (f (f (f x)))))))
+;=>(lambda (f x) (f (f (f (f (f x))))))
+
+;; Church numerals to integer (to debugging)
+
+(c0 '1+ 0)
+;=>0
+(c1 '1+ 0)
+;=>1
+(c2 '1+ 0)
+;=>2
+(c3 '1+ 0)
+;=>3
+(c4 '1+ 0)
+;=>4
+(c5 '1+ 0)
+;=>5
 
 
 ;; Testing evaluation of arithmetic operations
