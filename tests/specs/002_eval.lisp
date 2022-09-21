@@ -40,7 +40,7 @@
 ;; Church numerals to integer (to debugging) (using function)
 
 (define c->int (lambda (c) (c '1+ 0)))
-;=>(lambda (c) (c (quote 1+) 0))
+;=>(lambda (c) (c '1+ 0))
 
 (c->int c0)
 ;=>0

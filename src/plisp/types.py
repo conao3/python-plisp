@@ -48,6 +48,14 @@ class Cell(Expression):
     cdr: Expression
 
     def __str__(self) -> str:
+        if (
+            isinstance(self.car, Symbol) and
+            self.car.name == 'quote' and
+            isinstance(self.cdr, Cell) and
+            self.cdr.cdr == NIL
+        ):
+            return "'" + str(self.cdr.car)
+
         lst: list[str] = []
         cell = self
         while isinstance(cell, Cell):
