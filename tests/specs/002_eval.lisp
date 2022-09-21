@@ -34,6 +34,24 @@
 (c5 '1+ 0)
 ;=>5
 
+;; Church numerals to integer (to debugging) (using function)
+
+(define c->int (lambda (c) (c '1+ 0)))
+;=>(lambda (c) (c (quote 1+) 0))
+
+(c->int c0)
+;=>0
+(c->int c1)
+;=>1
+(c->int c2)
+;=>2
+(c->int c3)
+;=>3
+(c->int c4)
+;=>4
+(c->int c5)
+;=>5
+
 
 ;; Testing evaluation of arithmetic operations
 (+ 1 2)
