@@ -22,41 +22,50 @@
 (define c5 (lambda (f x) (f (f (f (f (f x)))))))
 ;=>(lambda (f x) (f (f (f (f (f x))))))
 
-;; Church numerals to integer (to debugging)
+;; Church numerals to concrete value
 
-(c0 '1+ 0)
-;=>0
-(c1 '1+ 0)
-;=>1
-(c2 '1+ 0)
-;=>2
-(c3 '1+ 0)
-;=>3
-(c4 '1+ 0)
-;=>4
-(c5 '1+ 0)
-;=>5
+(c0 (lambda (x) (cons 'a x)) nil)
+;=>nil
+(c1 (lambda (x) (cons 'a x)) nil)
+;=>(a)
+(c2 (lambda (x) (cons 'a x)) nil)
+;=>(a a)
+(c3 (lambda (x) (cons 'a x)) nil)
+;=>(a a a)
+(c4 (lambda (x) (cons 'a x)) nil)
+;=>(a a a a)
+(c5 (lambda (x) (cons 'a x)) nil)
+;=>(a a a a a)
 
-;; Church numerals to integer (to debugging) (using function)
+;; Church numerals to concrete value (using function)
 
-(define c->int (lambda (c) (c '1+ 0)))
-;=>(lambda (c) (c '1+ 0))
+(define cval (lambda (c) (c (lambda (x) (cons 'a x)) nil)))
+;=>(lambda (c) (c (lambda (x) (cons 'a x)) nil))
 
-(c->int c0)
-;=>0
-(c->int c1)
-;=>1
-(c->int c2)
-;=>2
-(c->int c3)
-;=>3
-(c->int c4)
-;=>4
-(c->int c5)
-;=>5
-
+(cval c0)
+;=>nil
+(cval c1)
+;=>(a)
+(cval c2)
+;=>(a a)
+(cval c3)
+;=>(a a a)
+(cval c4)
+;=>(a a a a)
+(cval c5)
+;=>(a a a a a)
 
 ;; Testing evaluation of arithmetic operations
+
+(define cadd (lambda (c_a c_b) (lambda (f x) (c_a f (c_b f x)))))
+;=>(lambda (c_a c_b) (lambda (f x) (c_a f (c_b f x))))
+
+(cadd c2 c3)
+;=>(lambda (f x) (c_a f (c_b f x)))
+
+(cval (cadd c2 c3))
+;=>(a a a a a)
+
 (+ 1 2)
 ;=>3
 
